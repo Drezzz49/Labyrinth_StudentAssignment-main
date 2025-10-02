@@ -471,7 +471,7 @@ PrefabInstance:
     - target: {fileID: 2697895973313742624, guid: 0a7983cc724fc554a9cbc4ef450723a9, type: 3}
       propertyPath: endPrefab
       value: 
-      objectReference: {fileID: 1093558810265427060, guid: d983414088423d547a0c8de1c3bb6c1c, type: 3}
+      objectReference: {fileID: 4460020541992405911, guid: c8c432589efcce64d9d20b62e1cfca61, type: 3}
     - target: {fileID: 2697895973313742624, guid: 0a7983cc724fc554a9cbc4ef450723a9, type: 3}
       propertyPath: questIndex
       value: 0
@@ -1016,7 +1016,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grid: {fileID: 2120782614}
   moveDelay: 0.2
-  charPrefab: {fileID: 8662445983401166164, guid: 12df9b1430524b44a8dcf4043b4cd83e, type: 3}
+  charPrefab: {fileID: 4190530604413534922, guid: 66049122a9dc1704f8ac0f6804653376, type: 3}
   jsonLoader: {fileID: 226252185}
   manualInputEnabled: 0
 --- !u!4 &1309089255
