@@ -9,6 +9,7 @@ public class GridCharacterMovement : MonoBehaviour
 
     [Header("Character Setup")]
     [SerializeField] private GameObject charPrefab;
+    Animator charactorAnimator;
 
     [Header("Wall Detection")]
     [SerializeField] private JsonLoader jsonLoader;
@@ -38,6 +39,8 @@ public class GridCharacterMovement : MonoBehaviour
         var mapData = jsonLoader.GetMapData();
         if (mapData != null)
             mapAdapter = new MapDataAdapter(mapData, jsonLoader.GetMinX(), jsonLoader.GetMinY());
+
+        charactorAnimator = charPrefab.transform.Find("Kuratchi_l_rigged_ver.1.0").GetComponent<Animator>();
 
         MoveToCurrentCell();
     }
@@ -91,6 +94,8 @@ public class GridCharacterMovement : MonoBehaviour
             isFollowingPath = false;
             pathCompleted = true;
             int totalMoves = currentPath.Count - 1;
+            charactorAnimator.SetBool("isRunning", false);
+            charactorAnimator.SetTrigger("isJumping");
             Debug.Log($"Path completed! Made {totalMoves} moves through {currentPath.Count} positions.");
             OnPathCompleted?.Invoke();
             return;
@@ -103,11 +108,13 @@ public class GridCharacterMovement : MonoBehaviour
             int currentMove = pathIndex; // Current move number (1-based)
             int totalMoves = currentPath.Count - 1; // Total moves needed
             pathIndex++;
+            charactorAnimator.SetBool("isRunning", true);
             Debug.Log($"Move {currentMove}/{totalMoves} completed - Reached ({nextPosition.x}, {nextPosition.y})");
         }
         else
         {
             Debug.LogError($"Path blocked at ({nextPosition.x}, {nextPosition.y})!");
+            charactorAnimator.SetBool("isRunning", false);
             isFollowingPath = false;
         }
     }
