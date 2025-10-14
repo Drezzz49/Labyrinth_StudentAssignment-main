@@ -44,65 +44,56 @@ public static class PathfindingAlgorithm
         //path.Add(start + Vector2Int.down);
         //path.Add(start + 2 * Vector2Int.down);
 
-        Vector2Int[] dirs = new Vector2Int[4] { Vector2Int.up, Vector2Int.down, Vector2Int.right, Vector2Int.left };
-        Vector2Int previousStep = start;
+        //Dictionary<Vector2Int, Vector2Int> paths = new Dictionary<Vector2Int, Vector2Int>();
 
-        int maxFail = 1000;
-        int failCount = 0;
 
-        while (true)
+        Vector2Int myPos = start;
+        int failsafe = 0;
+
+        while (myPos != goal && failsafe <= 200)
         {
-            Vector2Int newStep = new Vector2Int(-1, -1);
-            List<Vector2Int> possibleSteps = new List<Vector2Int>();
-
-            foreach (Vector2Int dir in dirs)
+            //if (!CheckWall(mapData, myPos, Vector2Int.up))
+            //{
+            //    path.Add(myPos + Vector2Int.up); 
+            //    myPos = myPos + Vector2Int.up;
+            //}
+            //else if (!CheckWall(mapData, myPos, Vector2Int.down))
+            //{
+            //    path.Add(myPos + Vector2Int.down);
+            //    myPos = myPos + Vector2Int.down;
+            //}
+            //else if (!CheckWall(mapData, myPos, Vector2Int.right))
+            //{
+            //    path.Add(myPos + Vector2Int.right);
+            //    myPos = myPos + Vector2Int.right;
+            //}
+            //else //vänster
+            //{
+            //    Debug.Log("entered");
+            //    path.Add(myPos + Vector2Int.left);
+            //    myPos = myPos + Vector2Int.left;
+            //}
+            //failsafe++;
+            
+            Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down , Vector2Int.left, Vector2Int.right };
+            Vector2Int newDir = dirs[Random.Range(0, 4)];
+            if (!CheckWall(mapData, myPos, newDir))
             {
-                Vector2Int newStepTotest = previousStep + dir;
-
-                if (!CheckWall(mapData, previousStep, dir))
-                    possibleSteps.Add(newStepTotest);
+                path.Add(myPos + newDir);
+                myPos = myPos + newDir;
+                //failsafe = 0;
             }
-
-            if (possibleSteps.Count > 0)
-                Debug.LogError("Hjälp");
-
-            if (possibleSteps.Count > 1)
-            {
-                (Vector2Int pos, float distance) minDistance = (Vector2Int.zero, -1);
-
-                foreach (Vector2Int step in possibleSteps)
-                {
-                    if (step == previousStep && possibleSteps.Count != 3)
-                        continue;
-
-                    if (minDistance.distance == -1)
-                    {
-                        minDistance = (step, Vector2Int.Distance(step, goal));
-                        continue;
-                    }
-
-                    float checkDistance = Vector2Int.Distance(step, goal);
-                    if (checkDistance < minDistance.distance)
-                        minDistance = (step, checkDistance);
-                }
-            }
-            else
-                newStep = possibleSteps[0];
-
-            if (newStep != new Vector2Int(-1, -1))
-            {
-                path.Add(newStep);
-                failCount = 0;
-            }
-            else
-                failCount++;
-
-            if (previousStep == goal || failCount == maxFail)
-                break;
+            failsafe++;
         }
 
-        foreach (Vector2Int step in path)
-            Debug.Log(step);
+        foreach (var item in path)
+        {
+            Debug.Log(item);
+        }
+        
+       
+
+
 
         //Debug.LogWarning("FindShortestPath not implemented yet!");
         return path;
