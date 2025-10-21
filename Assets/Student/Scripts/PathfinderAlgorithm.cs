@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public static class PathfindingAlgorithm
@@ -33,69 +35,22 @@ public static class PathfindingAlgorithm
      </summary> */
 
     private static List<Vector2Int> path = new List<Vector2Int>();
-    private static Dictionary<Vector2Int, Vector2Int> previousSteps = new Dictionary<Vector2Int, Vector2Int>();
-    private static Dictionary<Vector2Int, float> distances = new Dictionary<Vector2Int, float>();
+    //private static Dictionary<Vector2Int, Vector2Int> previousSteps = new Dictionary<Vector2Int, Vector2Int>();
+    //private static Dictionary<Vector2Int, float> distances = new Dictionary<Vector2Int, float>();
 
 
     public static List<Vector2Int> FindShortestPath(Vector2Int start, Vector2Int goal, IMapData mapData)
     {
-        // TODO: Implement your pathfinding algorithm here
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
+        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
-        //path.Add(start + Vector2Int.down);
-        //path.Add(start + 2 * Vector2Int.down);
-
-        //Dictionary<Vector2Int, Vector2Int> paths = new Dictionary<Vector2Int, Vector2Int>();
-
-
-        Vector2Int myPos = start;
-        int failsafe = 0;
-
-        while (myPos != goal && failsafe <= 200)
-        {
-            //if (!CheckWall(mapData, myPos, Vector2Int.up))
-            //{
-            //    path.Add(myPos + Vector2Int.up); 
-            //    myPos = myPos + Vector2Int.up;
-            //}
-            //else if (!CheckWall(mapData, myPos, Vector2Int.down))
-            //{
-            //    path.Add(myPos + Vector2Int.down);
-            //    myPos = myPos + Vector2Int.down;
-            //}
-            //else if (!CheckWall(mapData, myPos, Vector2Int.right))
-            //{
-            //    path.Add(myPos + Vector2Int.right);
-            //    myPos = myPos + Vector2Int.right;
-            //}
-            //else //vänster
-            //{
-            //    Debug.Log("entered");
-            //    path.Add(myPos + Vector2Int.left);
-            //    myPos = myPos + Vector2Int.left;
-            //}
-            //failsafe++;
-            
-            Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down , Vector2Int.left, Vector2Int.right };
-            Vector2Int newDir = dirs[Random.Range(0, 4)];
-            if (!CheckWall(mapData, myPos, newDir))
-            {
-                path.Add(myPos + newDir);
-                myPos = myPos + newDir;
-                //failsafe = 0;
-            }
-            failsafe++;
-        }
-
-        foreach (var item in path)
-        {
-            Debug.Log(item);
-        }
-        
-       
+    
 
 
 
-        //Debug.LogWarning("FindShortestPath not implemented yet!");
+        BFS(start, goal, mapData);
+
         return path;
     }
 
@@ -105,6 +60,50 @@ public static class PathfindingAlgorithm
         // For now, allow all movement so character can move while you work on pathfinding
         return false;
     }
+
+
+    private static void BFS(Vector2Int start, Vector2Int goal, IMapData mapData)
+    {
+        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        Stack<Vector2Int> stack = new Stack<Vector2Int>();
+        List<Vector2Int> haveBeen = new List<Vector2Int>();
+
+        stack.Push(start);
+        haveBeen.Add(start);
+
+        while (true)
+        {
+            var currentPos = stack.Peek();
+            if (currentPos == goal)
+            {
+                break;
+            }
+
+            bool noNewPath = true;
+
+            foreach (var dir in dirs)
+            {
+                if (!CheckWall(mapData, currentPos, dir) && !haveBeen.Contains(currentPos + dir))
+                {
+                    noNewPath = false; // vi kunde gå
+                    stack.Push(currentPos + dir);
+                    haveBeen.Add(currentPos + dir);
+                    break;
+                }
+
+            }
+            if (noNewPath == true)
+            {
+                stack.Pop();
+            }
+        }
+        while (stack.Count > 0)
+        {
+            path.Add(stack.Pop());
+        }
+        path.Reverse();
+    }
+
 
     private static bool CheckWall(IMapData mapData, Vector2Int pos, Vector2Int dir)
     {
