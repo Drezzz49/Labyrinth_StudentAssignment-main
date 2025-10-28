@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 public static class PathfindingAlgorithm
 {
@@ -74,10 +75,13 @@ public static class PathfindingAlgorithm
 
         while (OpenList.Count > 0)
         {
-            OpenList.OrderBy(pos => gCost[pos] + hCost[pos]); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
+            //OpenList.OrderBy(pos => gCost[pos] + hCost[pos]); 
+            OpenList = OpenList.OrderBy(pos => gCost[pos] + hCost[pos]).ToList(); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
             Vector2Int currentPosition = OpenList[0]; //hämtar positionen med bäst kostnad (lägst kostnad)
+            if (closedList.Count > 0)
+                Debug.Log("Previous position: " + closedList.Last() + ", Best position: " + OpenList[0] + " and worst position: " + OpenList.Last());
 
-            if (currentPosition == goal) { break; }
+            if (currentPosition == goal) break;
 
             OpenList.Remove(currentPosition);
             closedList.Add(currentPosition);
@@ -86,16 +90,26 @@ public static class PathfindingAlgorithm
             foreach (var dir in dirs)
             {
                 var newPos = currentPosition + dir;
-                if (CheckWall(mapData, currentPosition, dir) || closedList.Contains(newPos)) //om det finns en vägg eller vi redan varit på positionen
+
+                //if (CheckWall(mapData, currentPosition, dir) || closedList.Contains(newPos)) //om det finns en vägg eller vi redan varit på positionen
+                //{
+                //    continue;
+                //}
+                if (CheckInsideLabyrinth(mapData, currentPosition, dir) || closedList.Contains(newPos)) //om det finns en vägg eller vi redan varit på positionen
                 {
                     continue;
                 }
 
-                float newGScore = gCost[currentPosition] + 1;
+                float wallCost = CheckWallCost(mapData, currentPosition, dir);
+                if (wallCost == Mathf.Infinity || wallCost >= 999999f) //Skippar om det är en absurd hög kostnad
+                    continue;
 
-                if (!gCost.ContainsKey(newPos) || newGScore < gCost[newPos]) //vi kollar om vi har räknat ut gCost tidigare, eller om det nya gCost är bättre, då uppdaterar vi det 
+                float newGCost = gCost[currentPosition] + wallCost;
+                Debug.Log("New GCost: " + newGCost + " for position: " + newPos);
+
+                if (!gCost.ContainsKey(newPos) || newGCost < gCost[newPos]) //vi kollar om vi har räknat ut gCost tidigare, eller om det nya gCost är bättre, då uppdaterar vi det 
                 {
-                    gCost[newPos] = newGScore;
+                    gCost[newPos] = newGCost;
                     hCost[newPos] = Heuristic(newPos, goal);
 
                     tempPath[newPos] = currentPosition;
@@ -103,6 +117,38 @@ public static class PathfindingAlgorithm
                     if (!OpenList.Contains(newPos))
                     {
                         OpenList.Add(newPos);
+                    }
+                }
+            }
+            if (mapData.HasVent(currentPosition.x, currentPosition.y)) //Kollar efter vent
+            {
+                foreach (Vector2Int ventPosition in mapData.GetOtherVentPositions(currentPosition)) //Hämtar vägerna som vent leder till
+                {
+                    var newPos = ventPosition;
+
+                    if (closedList.Contains(newPos)) //skippar om vi redan har varit på positionen
+                    {
+                        continue;
+                    }
+
+                    float ventCost = mapData.GetVentCost(ventPosition.x, ventPosition.y);
+                    if (ventCost == Mathf.Infinity || ventCost >= 999999f) //Skippar om det är en absurd hög kostnad
+                        continue; 
+
+                    float newGCost = gCost[currentPosition] + ventCost;
+                    Debug.Log("New GCost: " + newGCost + " for position: " + newPos);
+
+                    if (!gCost.ContainsKey(newPos) || newGCost < gCost[newPos]) //vi kollar om vi har räknat ut gCost tidigare, eller om det nya gCost är bättre, då uppdaterar vi det 
+                    {
+                        gCost[newPos] = newGCost;
+                        hCost[newPos] = Heuristic(newPos, goal);
+
+                        tempPath[newPos] = currentPosition;
+
+                        if (!OpenList.Contains(newPos))
+                        {
+                            OpenList.Add(newPos);
+                        }
                     }
                 }
             }
@@ -171,6 +217,13 @@ public static class PathfindingAlgorithm
         path.Reverse();
     }
 
+    private static void Happy(Vector2Int endGoal, Vector2Int endPath)
+    {
+        if (endGoal == endPath)
+        {
+
+        }
+    }
 
     private static bool CheckWall(IMapData mapData, Vector2Int pos, Vector2Int dir)
     {
@@ -200,5 +253,41 @@ public static class PathfindingAlgorithm
             Vector2Int toCheck = pos;
             return mapData.HasVerticalWall(toCheck.x, toCheck.y);
         }
+    }
+
+    private static float CheckWallCost(IMapData mapData, Vector2Int pos, Vector2Int dir)
+    {
+        {
+            Vector2Int toCheck = pos + dir;
+            if (toCheck.x < 0 || toCheck.y < 0 || toCheck.x >= mapData.Width || toCheck.y >= mapData.Height)
+                return 1000;
+        }
+
+        if (dir == Vector2Int.up)
+        {
+            Vector2Int toCheck = pos + Vector2Int.up;
+            return mapData.GetHorizontalWallCost(toCheck.x, toCheck.y);
+        }
+        else if (dir == Vector2Int.down)
+        {
+            Vector2Int toCheck = pos;
+            return mapData.GetHorizontalWallCost(toCheck.x, toCheck.y);
+        }
+        else if (dir == Vector2Int.right)
+        {
+            Vector2Int toCheck = pos + Vector2Int.right;
+            return mapData.GetVerticalWallCost(toCheck.x, toCheck.y);
+        }
+        else
+        {
+            Vector2Int toCheck = pos;
+            return mapData.GetVerticalWallCost(toCheck.x, toCheck.y);
+        }
+    }
+
+    private static bool CheckInsideLabyrinth(IMapData mapData, Vector2Int pos, Vector2Int dir)
+    {
+        Vector2Int toCheck = pos + dir;
+        return toCheck.x < 0 || toCheck.y < 0 || toCheck.x >= mapData.Width || toCheck.y >= mapData.Height;
     }
 }

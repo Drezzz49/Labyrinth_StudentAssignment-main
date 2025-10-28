@@ -41,6 +41,8 @@ public class GridCharacterMovement : MonoBehaviour
             mapAdapter = new MapDataAdapter(mapData, jsonLoader.GetMinX(), jsonLoader.GetMinY());
 
         charactorAnimator = charPrefab.transform.Find("Kuratchi_l_rigged_ver.1.0").GetComponent<Animator>();
+        if (charactorAnimator != null)
+            Debug.Log("Animator Found!");
 
         MoveToCurrentCell();
     }
