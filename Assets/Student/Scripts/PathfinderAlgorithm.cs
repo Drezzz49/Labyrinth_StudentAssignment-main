@@ -66,24 +66,24 @@ public static class PathfindingAlgorithm
     private static void AStar(Vector2Int start, Vector2Int goal, IMapData mapData)
     {
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-        List<Vector2Int> OpenList = new List<Vector2Int> { start };
+        List<Vector2Int> openList = new List<Vector2Int> { start };
         HashSet<Vector2Int> closedList = new HashSet<Vector2Int>();
 
         Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float> { [start]=0 }; //beskriver kostnaden att komma givna positionen från start
         Dictionary<Vector2Int, float> hCost = new Dictionary<Vector2Int, float> { [start]=Heuristic(start, goal) }; //beskriver kostnaden för fågelvägen från givna positionen till målet
         Dictionary<Vector2Int, Vector2Int> tempPath = new Dictionary<Vector2Int, Vector2Int>();
 
-        while (OpenList.Count > 0)
+        while (openList.Count > 0)
         {
             //OpenList.OrderBy(pos => gCost[pos] + hCost[pos]); 
-            OpenList = OpenList.OrderBy(pos => gCost[pos] + hCost[pos]).ToList(); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
-            Vector2Int currentPosition = OpenList[0]; //hämtar positionen med bäst kostnad (lägst kostnad)
+            openList = openList.OrderBy(pos => gCost[pos] + hCost[pos]).ToList(); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
+            Vector2Int currentPosition = openList[0]; //hämtar positionen med bäst kostnad (lägst kostnad)
             if (closedList.Count > 0)
-                Debug.Log("Previous position: " + closedList.Last() + ", Best position: " + OpenList[0] + " and worst position: " + OpenList.Last());
+                Debug.Log("Previous position: " + closedList.Last() + ", Best position: " + openList[0] + " and worst position: " + openList.Last());
 
             if (currentPosition == goal) break;
 
-            OpenList.Remove(currentPosition);
+            openList.Remove(currentPosition);
             closedList.Add(currentPosition);
 
 
@@ -114,9 +114,9 @@ public static class PathfindingAlgorithm
 
                     tempPath[newPos] = currentPosition;
 
-                    if (!OpenList.Contains(newPos))
+                    if (!openList.Contains(newPos))
                     {
-                        OpenList.Add(newPos);
+                        openList.Add(newPos);
                     }
                 }
             }
@@ -145,9 +145,9 @@ public static class PathfindingAlgorithm
 
                         tempPath[newPos] = currentPosition;
 
-                        if (!OpenList.Contains(newPos))
+                        if (!openList.Contains(newPos))
                         {
-                            OpenList.Add(newPos);
+                            openList.Add(newPos);
                         }
                     }
                 }
@@ -241,7 +241,7 @@ public static class PathfindingAlgorithm
         else if (dir == Vector2Int.down)
         {
             Vector2Int toCheck = pos;
-            return mapData.HasHorizontalWall(toCheck.x, toCheck.y);
+            return mapData.HasHorizontalWall(toCheck.x, toCheck.y); 
         }
         else if (dir == Vector2Int.right)
         {
