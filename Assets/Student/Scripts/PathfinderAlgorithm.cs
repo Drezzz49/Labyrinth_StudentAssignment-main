@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Student.Scripts;
 using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.PlayerSettings;
@@ -66,7 +67,8 @@ public static class PathfindingAlgorithm
     private static void AStar(Vector2Int start, Vector2Int goal, IMapData mapData)
     {
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-        List<Vector2Int> openList = new List<Vector2Int> { start };
+        //List<Vector2Int> openList = new List<Vector2Int> { start };
+        BinaryHeap openList = new BinaryHeap(15);
         HashSet<Vector2Int> closedList = new HashSet<Vector2Int>();
 
         Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float> { [start]=0 }; //beskriver kostnaden att komma givna positionen från start
@@ -75,8 +77,10 @@ public static class PathfindingAlgorithm
 
         while (openList.Count > 0)
         {
-            //OpenList.OrderBy(pos => gCost[pos] + hCost[pos]); 
             openList = openList.OrderBy(pos => gCost[pos] + hCost[pos]).ToList(); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
+            
+
+
             Vector2Int currentPosition = openList[0]; //hämtar positionen med bäst kostnad (lägst kostnad)
             if (closedList.Count > 0)
                 Debug.Log("Previous position: " + closedList.Last() + ", Best position: " + openList[0] + " and worst position: " + openList.Last());
