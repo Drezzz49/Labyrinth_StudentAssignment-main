@@ -1,5 +1,10 @@
 using UnityEngine;
 
+
+/// <summary>
+/// fish rotation
+/// </summary>
+
 public class Rotation : MonoBehaviour
 {
     [SerializeField] private float rotateSpeed;

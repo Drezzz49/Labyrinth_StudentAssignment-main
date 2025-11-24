@@ -7,72 +7,57 @@ using UnityEngine;
 
 namespace Assets.Student.Scripts
 {
-    public class BinaryHeap
+    public class BinaryHeap <T>
     {
-        private DynamicArray<(Vector2Int pos, int fCost)> heap;
-        private int size;
-        public BinaryHeap(int capacity)
+        private List<(T item, float priority)> heap = new List<(T, float)>();
+
+        public int Count => heap.Count;
+
+        public void Enqueue(T item, float priority) //lägger till ett värde med float som sorterings värde
         {
-            heap = new DynamicArray<(Vector2Int pos, int fCost)>(15);
-            size = 0;
+            heap.Add((item, priority));
+            HeapifyUp(heap.Count - 1);
         }
-        public (Vector2Int pos, int fCost) Peek()
+
+        public T Dequeue() //hämtar överesta värdet (tar bara O(1) och sedan tar bort det från listan)
         {
-            if (size == 0) throw new InvalidOperationException("Heap is empty");
-            return heap[1];
+            var root = heap[0].item;
+            heap[0] = heap[heap.Count - 1];
+            heap.RemoveAt(heap.Count - 1);
+            HeapifyDown(0);
+            return root;
         }
-        public int Size()
+
+        private void HeapifyUp(int i) //placerar ett värde på botten som sedan går uppåt till det hittar rätt plats
         {
-            return size;
-        }
-        public void Insert((Vector2Int pos, int fCost) value)
-        {
-            if (size == heap.Length - 1) throw new InvalidOperationException("Heap is full");
-            heap[++size] = value;
-            HeapifyBottomToTop(size);
-        }
-        private void HeapifyBottomToTop(int index)
-        {
-            int parent = index / 2;
-            if (index <= 1) return;
-            if (heap[index].fCost < heap[parent].fCost)
+            while (i > 0)
             {
-                Swap(index, parent);
-                HeapifyBottomToTop(parent);
+                int parent = (i - 1) / 2;
+                if (heap[i].priority >= heap[parent].priority) break;
+                (heap[i], heap[parent]) = (heap[parent], heap[i]);
+                i = parent;
             }
         }
-        public (Vector2Int pos, int fCost) ExtractMin()
+
+        private void HeapifyDown(int i) //placerar ett värde på toppen som sedan går neråt till det hittar rätt plats
         {
-            if (size == 0) throw new InvalidOperationException("Heap is empty");
-            (Vector2Int, int) min = heap[1];
-            heap[1] = heap[size--];
-            HeapifyTopToBottom(1);
-            return min;
-        }
-        private void HeapifyTopToBottom(int index)
-        {
-            int left = index * 2;
-            int right = index * 2 + 1;
-            int smallest = index;
-            if (left <= size && heap[left].fCost < heap[smallest].fCost)
+            while (true)
             {
-                smallest = left;
+                int left = i * 2 + 1;
+                int right = i * 2 + 2;
+                int smallest = i;
+
+                if (left < heap.Count && heap[left].priority < heap[smallest].priority)
+                    smallest = left;
+
+                if (right < heap.Count && heap[right].priority < heap[smallest].priority)
+                    smallest = right;
+
+                if (smallest == i) break;
+
+                (heap[i], heap[smallest]) = (heap[smallest], heap[i]);
+                i = smallest;
             }
-            if (right <= size && heap[right].fCost < heap[smallest].fCost)
-            {
-                smallest = right;
-            }
-            if (smallest != index)
-            {
-                Swap(index, smallest);
-                HeapifyTopToBottom(smallest);
-            }
-        }
-        private void Swap(int a, int b)
-        {
-            (Vector2Int, int) temp = heap[a];
-            heap[a] = heap[b];
-            heap[b] = temp;
         }
     }
 }

@@ -68,7 +68,9 @@ public static class PathfindingAlgorithm
     {
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
         //List<Vector2Int> openList = new List<Vector2Int> { start };
-        BinaryHeap openList = new BinaryHeap(15);
+        BinaryHeap<Vector2Int> openList = new BinaryHeap<Vector2Int>();
+        openList.Enqueue(start, 0);
+
         HashSet<Vector2Int> closedList = new HashSet<Vector2Int>();
 
         Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float> { [start]=0 }; //beskriver kostnaden att komma givna positionen från start
@@ -77,28 +79,20 @@ public static class PathfindingAlgorithm
 
         while (openList.Count > 0)
         {
-            openList = openList.OrderBy(pos => gCost[pos] + hCost[pos]).ToList(); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
+            //openList = openList.OrderBy(pos => gCost[pos] + hCost[pos]).ToList(); //sortera listan beroende på hur högt värde de har på gCost och hCost på pos (vi räknar ut f kostnaden g+h=f)
             
 
-
-            Vector2Int currentPosition = openList[0]; //hämtar positionen med bäst kostnad (lägst kostnad)
-            if (closedList.Count > 0)
-                Debug.Log("Previous position: " + closedList.Last() + ", Best position: " + openList[0] + " and worst position: " + openList.Last());
+            Vector2Int currentPosition = openList.Dequeue(); //hämtar postition med bäst kostnad
 
             if (currentPosition == goal) break;
 
-            openList.Remove(currentPosition);
-            closedList.Add(currentPosition);
+            closedList.Add(currentPosition); 
 
 
             foreach (var dir in dirs)
             {
                 var newPos = currentPosition + dir;
 
-                //if (CheckWall(mapData, currentPosition, dir) || closedList.Contains(newPos)) //om det finns en vägg eller vi redan varit på positionen
-                //{
-                //    continue;
-                //}
                 if (CheckInsideLabyrinth(mapData, currentPosition, dir) || closedList.Contains(newPos)) //om det finns en vägg eller vi redan varit på positionen
                 {
                     continue;
@@ -118,10 +112,7 @@ public static class PathfindingAlgorithm
 
                     tempPath[newPos] = currentPosition;
 
-                    if (!openList.Contains(newPos))
-                    {
-                        openList.Add(newPos);
-                    }
+                    openList.Enqueue(newPos, gCost[newPos] + hCost[newPos]); //lägger till pos med fCost
                 }
             }
             if (mapData.HasVent(currentPosition.x, currentPosition.y)) //Kollar efter vent
@@ -149,10 +140,7 @@ public static class PathfindingAlgorithm
 
                         tempPath[newPos] = currentPosition;
 
-                        if (!openList.Contains(newPos))
-                        {
-                            openList.Add(newPos);
-                        }
+                        openList.Enqueue(newPos, gCost[newPos] + hCost[newPos]);
                     }
                 }
             }
